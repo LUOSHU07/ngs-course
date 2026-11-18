@@ -1,0 +1,11 @@
+{
+  "job_name": "ngs-s3-test",
+  "command": "bash tools/bohrium/run_pipeline.sh data/s3test",
+  "log_file": "logs/run.log",
+  "backward_files": ["data/s3test/counts/", "logs/run.log"],
+  "project_id": 0,
+  "platform": "ali",
+  "machine_type": "c2_m4_cpu",
+  "job_type": "container",
+  "image_address": "registry.dp.tech/dptech/ubuntu:20.04-py3.10"
+}

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NGS 工作台 · 从样本到报告</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="mark">N</span>
+      <div><strong>NGS 工作台</strong><small>从样本到报告</small></div>
+    </div>
+    <nav id="nav">
+      <div class="nav-group">
+        <span class="nav-label">学习</span>
+        <button data-view="dash" class="active">📊 概览</button>
+        <button data-view="lab">🧪 我的实验台</button>
+        <button data-view="tips">💡 技巧库</button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">实验旅程</span>
+        <button data-view="wet">🧬 湿实验旅程</button>
+        <button data-view="dry">💻 干实验</button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">设备与方案</span>
+        <button data-view="equip">🔧 设备与安全</button>
+        <button data-view="vendor">📚 厂家方案</button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-label">核算与输出</span>
+        <button data-view="calc">🧮 核算</button>
+        <button data-view="quiz">🎓 自测与证明</button>
+      </div>
+    </nav>
+    <div class="side-foot">离线单页 · 数据存本机浏览器</div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">NGS WORKBENCH</p>
+        <h1 id="view-title">概览</h1>
+      </div>
+      <span id="save-state" class="badge ok">已保存</span>
+    </header>
+
+    <!-- 概览 -->
+    <section id="view-dash" class="view active">
+      <div class="hero card">
+        <div>
+          <p class="eyebrow">学习进度</p>
+          <h2>从样本到报告，一条链路</h2>
+          <p class="muted">勾选模块推进进度；右侧显示当前完成度与下一步建议。</p>
+        </div>
+        <div class="ring" id="ring" style="--p:0"><span id="ring-text">0%</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>学习路径</h3><span class="badge">按这条线走</span></div>
+        <div class="journey-strip">
+          <button class="journey-card" data-jump="lab"><strong>🧪 实验台</strong><small>配置在用的试剂盒</small><span class="j-status"></span></button>
+          <button class="journey-card" data-jump="wet"><strong>🧬 湿实验</strong><small>样本 → 提取 → 建库 → 上机</small><span class="j-status"></span></button>
+          <button class="journey-card" data-jump="dry"><strong>💻 干实验</strong><small>FASTQ → 比对 → 差异</small><span class="j-status"></span></button>
+          <button class="journey-card" data-jump="equip"><strong>🔧 设备</strong><small>操作说明 + 维护记录</small><span class="j-status"></span></button>
+          <button class="journey-card" data-jump="calc"><strong>🧮 核算</strong><small>浓度 · pooling · 成本</small><span class="j-status"></span></button>
+          <button class="journey-card" data-jump="quiz"><strong>🎓 自测</strong><small>10 题 + 学习证明</small><span class="j-status"></span></button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat"><span id="stat-samples">0</span><small>已登记样本</small></div>
+        <div class="stat"><span id="stat-equip">0</span><small>设备逾期</small></div>
+        <div class="stat"><span id="stat-quiz">—</span><small>自测最高分</small></div>
+        <div class="stat"><span id="stat-cost">—</span><small>上次单样本成本</small></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>模块进度</h3>
+          <button id="reset-progress" class="ghost small">重置</button>
+        </div>
+        <div id="module-list" class="module-list"></div>
+      </div>
+
+      <div class="card">
+        <h3>下一步建议</h3>
+        <p id="next-step" class="muted"></p>
+      </div>
+    </section>
+
+    <!-- 湿实验 -->
+    <section id="view-lab" class="view">
+      <div class="card">
+        <div class="card-head"><h3>选择你在用的试剂盒与设备</h3><span class="badge">全局生效</span></div>
+        <p class="muted">勾选后：本页即时生成专属操作手册；实验会话自动预填试剂盒；厂家方案视图置顶「我的」。</p>
+        <div id="lab-config"></div>
+        <div class="lab-share">
+          <p class="muted">把勾选配置导出给同事/学员，对方粘贴后一键导入，全组共用同一套实验台。</p>
+          <div class="button-row">
+            <button id="lab-export" class="ghost small">导出配置</button>
+          </div>
+          <textarea id="lab-import-text" rows="2" placeholder="把对方导出的配置 JSON 粘贴到这里"></textarea>
+          <button id="lab-import" class="ghost small">导入配置</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>我的操作手册</h3><span class="badge" id="lab-count">0</span></div>
+        <div id="lab-manual"></div>
+      </div>
+    </section>
+
+    <!-- 技巧库 -->
+    <section id="view-tips" class="view">
+      <div class="card">
+        <div class="card-head"><h3>技巧库</h3><span class="badge" id="tip-count">0 条</span></div>
+        <label>搜索<input id="tip-search" placeholder="输入关键词，如 磁珠、Q30、pooling"></label>
+        <div id="tip-list" class="tip-grid"></div>
+      </div>
+    </section>
+
+    <section id="view-wet" class="view">
+      <div class="stepper" id="wet-steps">
+        <button data-step="sample" class="active">1 样本登记</button>
+        <button data-step="extract">2 核酸提取</button>
+        <button data-step="library">3 文库构建</button>
+        <button data-step="capture">4 杂交捕获</button>
+        <button data-step="qc">5 文库 QC</button>
+        <button data-step="seq">6 上机</button>
+      </div>
+
+      <div class="step-panel active" data-panel="sample">
+        <div class="card">
+          <div class="card-head"><h3>样本登记</h3><span class="badge">本地保存</span></div>
+          <div class="form-grid">
+            <label>样本编号<input id="s-id" placeholder="P2026-001-B01"></label>
+            <label>类型<select id="s-type"><option>血液</option><option>组织</option><option>唾液</option><option>FFPE</option><option>cfDNA</option></select></label>
+            <label>体积 µL<input id="s-vol" type="number" value="200"></label>
+            <label>Qubit ng/µL<input id="s-qubit" type="number" step="0.1" value="20"></label>
+            <label>A260/280<input id="s-a260" type="number" step="0.01" value="1.8"></label>
+          </div>
+          <button id="s-add">登记样本</button>
+          <div class="table-wrap"><table id="sample-table"></table></div>
+          <button id="sample-export" class="ghost">导出样本 CSV</button>
+        </div>
+      </div>
+
+      <div class="step-panel" data-panel="extract">
+        <div class="card">
+          <h3>核酸提取</h3>
+          <p class="muted">核心手法：消化终点看颗粒不看表 · 磁珠澄清看液体不看表 · 洗脱液点膜/珠中央 · 二次洗脱增产 · 每批带提取空白对照 · 含胍盐废液严禁混漂白剂。「开盖晾柱」各品牌要求相反，严格按所用说明书。详细操作卡：<a href="../01-湿实验/01-样本接收与核酸提取.md">01 样本接收与核酸提取</a>（含 9 类样本分型、安全暂停点、原理速览）· <a href="../references/文献索引.md">原理文献索引</a> · 翻车对照：<a href="../05-实践/故障案例库.md">故障案例库（15 例）</a></p>
+          <div id="check-extract" class="checklist"></div>
+          <table class="kv">
+            <tr><th>指标</th><th>gDNA</th><th>总 RNA</th></tr>
+            <tr><td>Qubit 浓度</td><td>满足建库最低输入</td><td>满足建库最低输入</td></tr>
+            <tr><td>A260/280</td><td>≈1.8</td><td>≈2.0</td></tr>
+            <tr><td>A260/230</td><td>≥2.0 较好</td><td>≥2.0 较好</td></tr>
+            <tr><td>完整性</td><td>主带完整</td><td>RIN / DV200 达标</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="step-panel" data-panel="library">
+        <div class="card">
+          <h3>文库构建</h3>
+          <p class="muted">以下为 DNA / RNA 两条路线的分步要点；点开每一步看参数、时间与检查点。</p>
+          <div id="library-detail" class="accordion"></div>
+          <div id="check-library" class="checklist"></div>
+          <table class="kv">
+            <tr><th>参数</th><th>常见范围</th><th>说明</th></tr>
+            <tr><td>DNA 输入</td><td>100–1000 ng</td><td>以试剂盒为准</td></tr>
+            <tr><td>总 RNA 输入</td><td>100–1000 ng</td><td>以试剂盒为准</td></tr>
+            <tr><td>cfDNA 输入</td><td>1–10 ng</td><td>专用建库方案</td></tr>
+            <tr><td>片段大小</td><td>300–500 bp</td><td>与读长匹配</td></tr>
+            <tr><td>PCR 循环</td><td>按输入优化</td><td>过多增加重复率</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>PCR 循环建议</h3>
+          <div class="form-grid">
+            <label>输入量 ng<input id="pcr-input" type="number" value="100"></label>
+            <label>类型<select id="pcr-type"><option value="dna">DNA</option><option value="rna">RNA</option></select></label>
+          </div>
+          <button id="pcr-btn">建议循环数</button>
+          <div id="pcr-out" class="result"></div>
+        </div>
+      </div>
+
+      <div class="step-panel" data-panel="capture">
+        <div class="card">
+          <h3>杂交捕获（WES / panel）</h3>
+          <p class="muted">先做带 index 的常规文库，QC 合格后再进入捕获。点开每一步看试剂、时间与检查点。</p>
+          <div id="capture-detail" class="accordion"></div>
+          <div id="check-capture" class="checklist"></div>
+        </div>
+
+        <div class="card">
+          <h3>杂交配液</h3>
+          <div class="form-grid">
+            <label>文库总量 ng<input id="hyb-lib-mass" type="number" value="500"></label>
+            <label>文库浓度 ng/µL<input id="hyb-lib-conc" type="number" value="50"></label>
+            <label>探针用量 ng<input id="hyb-probe-mass" type="number" value="500"></label>
+            <label>探针浓度 ng/µL<input id="hyb-probe-conc" type="number" value="250"></label>
+            <label>Cot-1 用量 µg<input id="hyb-cot-mass" type="number" value="5"></label>
+            <label>Cot-1 浓度 µg/µL<input id="hyb-cot-conc" type="number" value="1"></label>
+            <label>Blockers µL<input id="hyb-blockers" type="number" value="5"></label>
+            <label>总体积 µL<input id="hyb-total" type="number" value="30"></label>
+          </div>
+          <button id="hyb-btn">计算配液</button>
+          <div id="hyb-out" class="result"></div>
+        </div>
+
+        <div class="card">
+          <h3>磁珠纯化</h3>
+          <div class="form-grid">
+            <label>样品体积 µL<input id="spri-sample" type="number" value="50"></label>
+            <label>磁珠比例（×）<input id="spri-ratio" type="number" value="1.8" step="0.1"></label>
+            <label>洗脱体积 µL<input id="spri-elution" type="number" value="30"></label>
+          </div>
+          <button id="spri-btn">计算</button>
+          <div id="spri-out" class="result"></div>
+        </div>
+      </div>
+
+      <div class="step-panel" data-panel="qc">
+        <div class="card">
+          <h3>文库 QC 判定</h3>
+          <div class="form-grid">
+            <label>Qubit ng/µL<input id="qc-qubit" type="number" step="0.1" value="12"></label>
+            <label>主峰 bp<input id="qc-bp" type="number" value="450"></label>
+            <label>qPCR nM<input id="qc-qpcr" type="number" step="0.1" value="30"></label>
+            <label>主峰范围
+              <select id="qc-peak"><option value="ok">在预期范围</option><option value="low">偏小</option><option value="high">偏大</option></select>
+            </label>
+            <label>Adapter dimer
+              <select id="qc-dimer"><option value="no">无明显</option><option value="yes">明显</option></select>
+            </label>
+          </div>
+          <button id="qc-btn">判定</button>
+          <div id="qc-out" class="result"></div>
+        </div>
+      </div>
+
+      <div class="step-panel" data-panel="seq">
+        <div class="card">
+          <h3>上机前</h3>
+          <div id="check-seq" class="checklist"></div>
+          <div class="form-grid">
+            <label>总体积 µL<input id="seq-phix-vol" type="number" value="100"></label>
+            <label>PhiX %<input id="seq-phix-pct" type="number" step="0.1" value="1"></label>
+          </div>
+          <button id="seq-phix-btn">算 PhiX</button>
+          <div id="seq-phix-out" class="result"></div>
+          <p class="muted">Pooling 体积计算见「核算」页，按 nM 等摩尔混合。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>实验会话</h3><span class="badge">边做边记录</span></div>
+        <div id="session-start"></div>
+        <div id="session-active" style="display:none">
+          <div class="card session-head-card" id="session-head"></div>
+          <div id="session-steps"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>历史会话</h3><span class="badge" id="session-hist-count">0</span></div>
+          <div id="session-history"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-dry" class="view">
+      <div class="card">
+        <div class="card-head"><h3>流程脚本生成</h3><span class="badge">Linux</span></div>
+        <div class="form-grid">
+          <label>数据类型<select id="d-type"><option value="dna">DNA-seq</option><option value="rna">RNA-seq</option></select></label>
+          <label>R1 路径<input id="d-r1" value="raw/sample_R1.fastq.gz"></label>
+          <label>R2 路径<input id="d-r2" value="raw/sample_R2.fastq.gz"></label>
+          <label>参考基因组<input id="d-ref" value="ref/genome.fa"></label>
+          <label>注释 GTF<input id="d-gtf" value="ref/annotation.gtf"></label>
+          <label>线程<input id="d-threads" type="number" value="4"></label>
+          <label>输出目录<input id="d-outdir" value="results"></label>
+        </div>
+        <button id="d-gen">生成脚本</button>
+        <div class="code-actions">
+          <button id="d-copy" class="ghost small">复制</button>
+          <button id="d-download" class="ghost small">下载 .sh</button>
+        </div>
+        <pre id="d-script" class="code">点击“生成脚本”后显示命令。</pre>
+      </div>
+
+      <div class="card">
+        <h3>QC 指标解读</h3>
+        <div class="form-grid">
+          <label>比对率 %<input id="m-map" type="number" value="92"></label>
+          <label>Q30 %<input id="m-q30" type="number" value="88"></label>
+          <label>重复率 %<input id="m-dup" type="number" value="18"></label>
+          <label>rRNA %（RNA）<input id="m-rrna" type="number" value="5"></label>
+        </div>
+        <button id="m-btn">解读</button>
+        <div id="m-out" class="result"></div>
+      </div>
+
+      <div class="card">
+        <h3>常用命令</h3>
+        <table class="kv">
+          <tr><th>步骤</th><th>命令</th></tr>
+          <tr><td>清洗</td><td><code>fastp -i R1 -I R2 -o cR1 -O cR2 -q 20 -l 50</code></td></tr>
+          <tr><td>比对</td><td><code>bwa-mem2 mem -t 8 ref.fa cR1 cR2 | samtools sort -o s.bam -</code></td></tr>
+          <tr><td>定量</td><td><code>featureCounts -T 8 -p -a ann.gtf -o counts.txt s.bam</code></td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>方法选型</h3>
+        <label>你的问题
+          <select id="choose">
+            <option value="wgs">全基因组变异</option>
+            <option value="wes">编码区变异、预算有限</option>
+            <option value="rna">基因表达差异</option>
+            <option value="16s">微生物群落组成</option>
+            <option value="sc">单细胞异质性</option>
+            <option value="sv">结构变异 / 复杂区域</option>
+          </select>
+        </label>
+        <div id="choose-out" class="result"></div>
+      </div>
+    </section>
+
+    <!-- 设备 -->
+    <section id="view-equip" class="view">
+      <div class="card">
+        <div class="card-head"><h3>设备维护</h3><span class="badge">按上次维护日期计算</span></div>
+        <div id="equip-grid" class="equip-grid"></div>
+      </div>
+      <div class="card">
+        <h3>每日点检</h3>
+        <div id="check-equip" class="checklist"></div>
+      </div>
+      <div class="card">
+        <h3>故障速查</h3>
+        <label>现象
+          <select id="fault-select">
+            <option value="pipette">移液器体积不准</option>
+            <option value="pcr">PCR 仪温度不均</option>
+            <option value="centrifuge">离心机震动/异响</option>
+            <option value="vortex">涡旋震动减弱</option>
+            <option value="thermomixer">恒温混匀仪温度偏差</option>
+            <option value="magnet">磁力架吸附变慢</option>
+            <option value="bsc">生物安全柜风速报警</option>
+            <option value="water">纯水电阻率下降</option>
+            <option value="freezer">冰箱温度报警</option>
+            <option value="ln2">液氮罐外壳结霜</option>
+            <option value="ice">制冰机产冰异常</option>
+            <option value="autoclave">灭菌锅灭菌不彻底</option>
+            <option value="qubit">Qubit 读数漂移</option>
+            <option value="nanodrop">NanoDrop 读数不稳</option>
+            <option value="tape">TapeStation 峰形异常</option>
+            <option value="electro">电泳条带异常</option>
+            <option value="covaris">Covaris 片段偏大</option>
+            <option value="kingfisher">KingFisher 得率不齐</option>
+            <option value="maxwell">Maxwell 卡盒报错</option>
+            <option value="seq">测序 Q30 下降</option>
+          </select>
+        </label>
+        <div id="fault-out" class="result"></div>
+      </div>
+    </section>
+
+    <!-- 计算与成本 -->
+    <section id="view-calc" class="view">
+      <div class="grid2">
+        <div class="card">
+          <h3>质量浓度 → 摩尔浓度</h3>
+          <label>浓度 ng/µL<input id="m-ng" type="number" value="12" step="0.1"></label>
+          <label>片段长度 bp<input id="m-bp" type="number" value="450"></label>
+          <button id="molar-btn">计算 nM</button>
+          <div id="molar-out" class="result"></div>
+        </div>
+
+        <div class="card">
+          <h3>等摩尔 Pooling</h3>
+          <label>各文库浓度 nM<input id="p-concs" value="40,25,30,20"></label>
+          <label>目标浓度 nM<input id="p-target" type="number" value="10" step="0.1"></label>
+          <label>总体积 µL<input id="p-vol" type="number" value="100"></label>
+          <button id="pool-btn">计算体积</button>
+          <button id="pool-import" class="ghost small">从样本表带入浓度</button>
+          <div id="pool-out" class="result"></div>
+          <button id="pool-export" class="ghost small">导出 pooling CSV</button>
+        </div>
+
+        <div class="card">
+          <h3>稀释</h3>
+          <label>C1 母液<input id="dil-c1" type="number" value="100" step="0.1"></label>
+          <label>C2 目标<input id="dil-c2" type="number" value="2" step="0.1"></label>
+          <label>需要的体积 µL<input id="dil-v2" type="number" value="500" title="实际需要量；过小（低于 50 µL）将自动放大到可操作体积，母液消耗会一并披露"></label>
+          <label>最小移液体积 µL<input id="dil-min" type="number" value="2" step="0.5" title="低于此体积单步移液误差过大，将自动分步稀释"></label>
+          <label class="check"><input id="dil-single-first" type="checkbox" checked> 优先一步完成（允许总量 ≤3× 需要量）</label>
+          <button id="dil-btn">计算</button>
+          <div id="dil-out" class="result"></div>
+        </div>
+
+        <div class="card">
+          <h3>PhiX</h3>
+          <label>总体积 µL<input id="phix-vol" type="number" value="100"></label>
+          <label>PhiX %<input id="phix-pct" type="number" step="0.1" value="1"></label>
+          <button id="phix-btn">计算</button>
+          <div id="phix-out" class="result"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>单样本成本</h3>
+        <div class="form-grid">
+          <label>提取/样本<input id="c-ext" type="number" value="10"></label>
+          <label>建库/样本<input id="c-lib" type="number" value="150"></label>
+          <label>QC/样本<input id="c-qc" type="number" value="25"></label>
+          <label>耗材/样本<input id="c-con" type="number" value="8"></label>
+          <label>人工/样本<input id="c-lab" type="number" value="90"></label>
+          <label>整 run 成本<input id="c-run" type="number" value="1200"></label>
+          <label>样本数<input id="c-n" type="number" value="10"></label>
+          <label>装载率 0–1<input id="c-fill" type="number" value="0.9" step="0.05"></label>
+          <label>失败率 0–1<input id="c-fail" type="number" value="0.1" step="0.01"></label>
+        </div>
+        <button id="cost-btn">计算</button>
+        <button id="cost-filln" class="ghost small">样本数=已登记数</button>
+        <div id="cost-out" class="result"></div>
+        <div class="table-wrap"><table id="sens-table"></table></div>
+      </div>
+    </section>
+
+    <!-- 厂家方案 -->
+    <section id="view-vendor" class="view">
+      <div class="card">
+        <div class="card-head"><h3>厂家方案库</h3><span class="badge" id="vendor-count">0 项已核对</span></div>
+        <p class="muted">体积、温度、循环数逐条取自原厂手册；不同版本以最新手册为准。</p>
+        <div class="chip-row" id="vendor-cats"></div>
+        <label>搜索<input id="vendor-search" placeholder="如 磁珠、65 ℃、接头"></label>
+        <div id="vendor-mine"></div>
+      <div id="vendor-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>市场全景（已登记，待核对）</h3><span class="badge">不写未核实参数</span></div>
+        <div id="vendor-pending"></div>
+      </div>
+    </section>
+
+    <!-- 自测与证明 -->
+    <section id="view-quiz" class="view">
+      <div class="card">
+        <div class="card-head"><h3>随机 10 题</h3><div class="button-row"><button id="quiz-wrong-btn" class="ghost small">错题本（0）</button><button id="quiz-reset" class="ghost small">换一组</button></div></div>
+        <div id="quiz-box"></div>
+        <button id="quiz-submit">提交</button>
+        <p id="quiz-score" class="muted"></p>
+      </div>
+
+      <div class="card">
+        <h3>学习证明</h3>
+        <p class="muted">汇总模块进度、自测最高分与完成的实验会话，生成可打印的学习证明（培训留档/结业用）。</p>
+        <button id="cert-btn" class="ghost">生成学习证明</button>
+      </div>
+
+      <div class="card">
+        <h3>导出与备份</h3>
+        <p class="muted">数据仅保存在本机浏览器，不会上传。建议每周导出一次备份。</p>
+        <div class="button-row">
+          <button id="export-json">导出全部数据 JSON</button>
+          <button id="export-samples" class="ghost">样本 CSV</button>
+          <button id="export-equip" class="ghost">设备 CSV</button>
+          <button id="export-template" class="ghost">空白模板 CSV</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>当前数据</h3>
+        <pre id="json-preview" class="code"></pre>
+        <button id="clear-all" class="danger small">清空全部数据</button>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toast" class="toast"></div>
+<div id="tour" class="tour">
+  <div class="tour-card">
+    <h3 id="tour-title"></h3>
+    <p id="tour-text" class="muted"></p>
+    <div class="button-row">
+      <button id="tour-prev" class="ghost small">上一步</button>
+      <button id="tour-next" class="small">下一步</button>
+      <button id="tour-skip" class="ghost small">跳过</button>
+    </div>
+  </div>
+</div>
+<script src="calc.js"></script>
+<script src="vendors.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

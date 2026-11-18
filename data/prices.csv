@@ -1,0 +1,7 @@
+name,category,unit_price,basis,qty
+RNA extraction,reagent,10,sample,1
+Library prep,reagent,150,sample,1
+QC (Qubit/TapeStation/qPCR),reagent,25,sample,1
+Tips and tubes,consumable,8,sample,1
+Labor,labor,90,sample,1
+Sequencing run,reagent,1200,run,1

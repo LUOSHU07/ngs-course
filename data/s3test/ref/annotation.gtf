@@ -1,0 +1,4 @@
+chr1	ctg	exon	1001	5000	.	+	.	gene_id "gene1"; transcript_id "gene1.1";
+chr1	ctg	exon	6001	10000	.	+	.	gene_id "gene2"; transcript_id "gene2.1";
+chr1	ctg	exon	11001	15000	.	+	.	gene_id "gene3"; transcript_id "gene3.1";
+chr1	ctg	exon	16001	20000	.	+	.	gene_id "gene4"; transcript_id "gene4.1";
